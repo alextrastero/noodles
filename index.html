@@ -1,0 +1,267 @@
+<html>
+  <head>
+    <title>Noodles</title>
+    <!--
+    <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+  -->
+  <script src="jquery.js"></script>
+    <script src='https://cdn.firebase.com/v0/firebase.js'></script>
+
+
+    <style>
+    #container{
+      width: 600px;
+    }
+    a.selected{
+      background: #FFFFFF;
+      color: #A90329;
+    }
+    a.selected:hover{
+      color: #A90329;
+      background: #FFFFFF;
+    }
+    body{
+      background-color: #000000;
+      color: #cccccc;
+      font-size: 16px;
+      font-family: Tahoma;
+      text-transform: uppercase;
+    }
+    input[type="text"]{
+      padding: 5px;
+      color: #a90329;
+      font-weight: bold;
+      -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+
+    }
+      ul{
+        list-style: none;
+      }
+      li{
+        margin-bottom: 10px;
+      }
+      #total{
+        font-weight: bold;
+        font-size: 14px;
+        color: #ff0000;
+        display: inline;
+      }
+      a{
+        color: #dddddd;
+        text-decoration: none;
+        display: inline-block;
+        padding: 5px 10px;
+        margin: 4px 1px;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+        background: #a90329;
+      }
+      a:hover{
+        color: #ffffff;
+        background: #6d0019;
+      }
+      a#submit{
+        width: 150px;
+        text-align: center;
+        background: #4096ee;
+      }
+      a#submit:hover{
+        background: #1166BB;
+      }
+      a#view{
+        width: 150px;
+        text-align: center;
+        background: #006e2e;
+      }
+      a#view:hover{
+        background: #003717;
+      }
+      h2{
+        font-weight: normal;
+      }
+    </style>
+    <script>
+    
+
+    </script>
+
+  </head>
+  <body>
+    <div id="container">
+        
+        <ul>
+          <li><h2 id='orderHeadline'>Place Order</h2><h3>+350 20063940</h3></li>
+          <li>Your <i>real</i> name: </li>
+          <li><input name='nombre' id='nombre' type="text"/></li>
+          <li> - Your Style</li>
+          <li id="style">
+            <a class='btn' href="#" name='Malaysian'>Malaysian</a>
+            <a class='btn' href="#" name='Chinese'>Chinese</a>
+            <a class='btn' href="#" name='Japanese'>Japanese</a>
+          </li>
+          <li> - Meat? Veg? King?</li>
+          <li id="type">
+            <a class='btn' data-price='0' href="#" name='Vegetarian'>Vegetarian</a>
+            <a class='btn' data-price='1' href="#" name='Chicken'>Chicken</a>
+            <a class='btn' data-price='2' href="#" name='Pork'>Pork</a>
+            <a class='btn' data-price='3' href="#" name='Beef'>Beef</a>
+            <a class='btn' data-price='4' href="#" name='King Prawns'>King Prawns</a>
+          </li>
+          <li> - What Salsa?</li>
+          <li id='sauce'>
+            <a class='btn' href="#" name='Oyster'>Oyster</a>
+            <a class='btn' href="#" name='Tom Yam'>Tom Yam</a>
+            <a class='btn' href="#" name='Spicy'>Spicy</a>
+            <a class='btn' href="#" name='Black Pepper'>Black Pepper</a>
+            <a class='btn' href="#" name='Black Bean'>Black Bean</a>
+            <a class='btn' href="#" name='Spicy Sweet Chilli'>Spicy Sweet Chilli</a>
+            <a class='btn' href="#" name='Sweet Chilli'>Sweet Chilli</a>
+            <a class='btn' href="#" name='Sweet and Sour'>Sweet and Sour</a>
+          </li>
+          <li>Extra?</li>
+          <li id='extra'>
+            <a class='btn' href="#" data-price="0" name=' '>No Extra</a>
+            <a class='btn' href="#" data-price="0.5" name='Egg'>Egg</a>
+            <a class='btn' href="#" data-price="0.5" name='Ultra Spicy'>Ultra Spicy</a>
+            <a class='btn' href="#" data-price="1" name='Veg'>Veg</a>
+            <a class='btn' href="#" data-price="2" name='Meat'>Meat</a>
+            <a class='btn' href="#" data-price="2.5" name='Prawns'>Prawns</a>
+          </li>
+          <li>Total: <p id="total"></p></li>
+          <li>
+            <a id="submit" href="#" name="submit">SEND ORDER</a>
+          </li>
+          <li>
+            <h2>View Orders</h2>
+          </li>
+          <li>
+            <a id="view" href="#" name="view">VIEW ORDERS</a>
+          </li>
+          <li>
+            <p id='orderReview'></p>
+            <!-- <a id="clear" href="#" name="clear">CLEAR ORDERS</a> -->
+          </li>
+        </ul>
+        
+        
+    </div>
+
+
+
+
+    <script>
+      var chinesePrices = [5.00, 5.40, 5.40, 5.60, 6.80];
+      var malaysianPrices = [5.00, 5.40, 5.40, 5.60, 6.80];
+      var japanesePrices = [6.00, 6.60, 6.60, 7.00, 8.00];
+
+      var types = {"Japanese": japanesePrices, "Chinese":chinesePrices, "Malaysian":malaysianPrices};
+      var order = '';
+      
+      var aux = '';
+      var myDataRef = new Firebase('https://fusion-delli.firebaseio.com/orders');
+      
+      $('#nombre').focus();
+
+      
+      var count;
+      $('#submit').click(function (e) {
+
+        var price = 0;
+        name = $('#nombre').val();
+        var type, style, price;
+
+        
+        $('.selected').each(function(index, value) {
+          count = index;
+          order += value.name + ' ';
+          var category = $(this).parent().attr("id");
+          if (category == "style") {
+            style = $(this).attr("name");
+          }
+          if (category == "type") {
+            type = $(this).data("price");
+          }
+          if (category == "extra") {
+            price = parseFloat($(this).data("price"));
+          }
+        });
+
+        if (count<2){
+          alert('Please select a STYLE, TYPE and SAUCE. ');
+          order = '';
+          return false;
+        }
+        if (name.length<1) {
+          alert("What's ya name?");
+          order = '';
+          return false;
+        } else {
+          price = parseFloat(types[style][type]) + price;
+          //price = parseFloat(types[style][type]);
+          myDataRef.push({name: name, order: order, price: price});
+
+          $('#container').append('<p>Thank you '+ name + '.</p><p>Please pay <strong>\u00A3'+ price + '</strong> plus <strong>\u00A30.20</strong> for delivery. </p> <p>Your Order: <strong>'+ order+'</strong></p>');
+          $('#submit').css("display", 'none');
+          return false;
+        }
+        return false;
+      });
+      
+       $('#clear').click(function (e) {
+         myDataRef.remove();
+         console.info('Database Empty');
+         return false;
+       });
+
+
+      var orders = [];
+      var peeps = [];
+      var prices = [];
+      $(document).ready(function() {
+        var listRef = new Firebase('https://fusion-delli.firebaseio.com/orders');
+        listRef.on('child_added', function(snapshot) {
+          var msgData = snapshot.val();
+          //console.info(msgData.name + ' ' + msgData.order + ' ' + msgData.price);
+          orders.push(msgData.order);
+          peeps.push(msgData.name);
+          prices.push(msgData.price);
+        });
+      });
+
+      $('#view').click(function (e){
+        //orders.sort();
+        var output = '<ul>';
+        var a, b, c;
+        var totalPrice = 0;
+
+        for (var i = 0; i < orders.length; i++) {
+          output += '<li>';
+          
+            a = orders[i];
+            b = peeps[i];
+            c = prices[i];
+            totalPrice += c;
+            output += i+1 + ' - '+ b + ': '+a+' (\u00A3'+c+')';
+          
+          output += '</li>';
+        };
+
+        output += '<li>Total Price (plus \u00A32) = \u00A3'+ parseFloat(totalPrice+2)+'</li></ul>';
+        $('#container').append(output);
+        console.info(output);
+        return false;
+      });
+
+
+
+      $('.btn').click(function () {
+        $(this).parent().children().removeClass('selected');
+        $(this).toggleClass('selected');
+        return false;
+      });
+    </script>
+  </body>
+</html>
+
